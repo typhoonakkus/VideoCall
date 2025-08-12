@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">TV VideoCall</string>
+    <string name="profile">Profil</string>
+    <string name="contacts">Rehber</string>
+    <string name="call">Çağrı Başlat</string>
+    <string name="accept">Kabul Et</string>
+    <string name="decline">Reddet</string>
+</resources>

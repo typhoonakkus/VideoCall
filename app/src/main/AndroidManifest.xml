@@ -1,0 +1,30 @@
+<manifest package="com.example.tvvideocall"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:label="TV VideoCall"
+        android:usesCleartextTraffic="false"
+        android:supportsRtl="true">
+
+        <activity android:name="com.example.tvvideocall.CallActivity"
+            android:exported="true"
+            android:resizeableActivity="true"
+            android:screenOrientation="landscape">
+        </activity>
+
+        <activity android:name="com.example.tvvideocall.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+</manifest>

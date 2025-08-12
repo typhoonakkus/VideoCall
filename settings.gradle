@@ -1,0 +1,2 @@
+rootProject.name = "AndroidTV-VideoCall-MVP"
+include ':app'
