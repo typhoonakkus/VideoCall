@@ -1,2 +1,2 @@
-rootProject.name = "AndroidTV-VideoCall-MVP"
-include ':app'
+rootProject.name = "TVVideoCall"
+include(':app')
