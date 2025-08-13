@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment
 import java.util.*
 
 class ContactsFragment : Fragment() {
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.fragment_contacts, container, false)
         val callBtn = v.findViewById<Button>(R.id.btn_call)
@@ -31,7 +30,6 @@ class ContactsFragment : Fragment() {
         callBtn.setOnClickListener {
             val remoteId = etRemote.text.toString().ifBlank { "peer-123" }
             val i = Intent(requireContext(), CallActivity::class.java)
-            i.putExtra("peerId", remoteId) // legacy key
             i.putExtra("localId", localId)
             i.putExtra("remoteId", remoteId)
             i.putExtra("isCaller", true)

@@ -26,12 +26,14 @@
         android:id="@+id/et_remote_id"
         android:layout_width="300dp"
         android:layout_height="wrap_content"
-        android:hint="Enter peer ID to call" />
+        android:hint="Enter peer ID to call"
+        android:padding="12dp"/>
 
     <Button
         android:id="@+id/btn_call"
         android:layout_width="300dp"
         android:layout_height="80dp"
-        android:text="Call" />
+        android:text="Call"
+        android:layout_marginTop="16dp"/>
 
 </LinearLayout>

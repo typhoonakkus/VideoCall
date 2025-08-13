@@ -12,8 +12,7 @@
         android:id="@+id/local_video_view"
         android:layout_width="320dp"
         android:layout_height="180dp"
-        android:layout_gravity="top|end"
-        />
+        android:layout_gravity="top|end"/>
 
     <Button
         android:id="@+id/btn_accept"

@@ -6,7 +6,25 @@
     android:gravity="center"
     android:padding="24dp">
 
-    <TextView android:id="@+id/tv_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Your name" android:textSize="24sp" />
-    <Button android:id="@+id/btn_regen" android:layout_width="200dp" android:layout_height="60dp" android:text="Regenerate ID" android:layout_marginTop="16dp"/>
+    <TextView
+        android:id="@+id/tv_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Your ID"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/btn_regen"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+        android:text="Regenerate ID"
+        android:layout_marginTop="16dp"/>
+
+    <Button
+        android:id="@+id/btn_go_contacts"
+        android:layout_width="220dp"
+        android:layout_height="60dp"
+        android:text="Go to Contacts"
+        android:layout_marginTop="12dp"/>
 
 </LinearLayout>

@@ -20,10 +20,7 @@ object FirebaseSignaling {
                 val type = map["type"] as? String ?: return
                 val from = map["from"] as? String ?: return
                 val to = map["to"] as? String ?: return
-
-                // deliver only messages addressed to us
                 if (to != localId && to != "broadcast") return
-
                 when(type) {
                     "offer" -> callback.onOffer(from, map["sdp"] as String)
                     "answer" -> callback.onAnswer(from, map["sdp"] as String)
@@ -59,7 +56,6 @@ object FirebaseSignaling {
         db = null
     }
 
-    // helper to clear signaling messages between two peers (dev use)
     fun clearBetween(a: String, b: String) {
         db?.orderByChild("from")?.equalTo(a)?.addListenerForSingleValueEvent(object: ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

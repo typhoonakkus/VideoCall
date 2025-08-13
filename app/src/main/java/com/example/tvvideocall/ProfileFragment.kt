@@ -15,6 +15,7 @@ class ProfileFragment : Fragment() {
         val v = inflater.inflate(R.layout.fragment_profile, container, false)
         val tvName = v.findViewById<TextView>(R.id.tv_name)
         val btnReg = v.findViewById<Button?>(R.id.btn_regen)
+        val btnGo = v.findViewById<Button?>(R.id.btn_go_contacts)
         val prefs = requireContext().getSharedPreferences("tvcall", Context.MODE_PRIVATE)
         var localId = prefs.getString("local_id", null)
         if (localId == null) {
@@ -26,6 +27,12 @@ class ProfileFragment : Fragment() {
             val newId = UUID.randomUUID().toString().substring(0,8)
             prefs.edit().putString("local_id", newId).apply()
             tvName.text = "Your ID: $newId"
+        }
+        btnGo?.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, ContactsFragment())
+                .addToBackStack(null)
+                .commit()
         }
         return v
     }

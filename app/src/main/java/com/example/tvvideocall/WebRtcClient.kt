@@ -1,19 +1,13 @@
 package com.example.tvvideocall
 
 import android.content.Context
-import android.util.Log
 import org.webrtc.*
-import kotlin.concurrent.thread
 
-class WebRtcClient(private val context: Context, private val localId: String, private val remoteId: String, private val onRemoteStream: (VideoTrack?) -> Unit) {
+class WebRtcClient(private val context: Context, private val localId: String, private val remoteId: String, private val onRemoteTrack: (VideoTrack?) -> Unit) {
     private val eglBase = EglBase.create()
     private val peerConnectionFactory: PeerConnectionFactory
     private var peerConnection: PeerConnection? = null
     private var localVideoTrack: VideoTrack? = null
-
-    companion object {
-        private const val TAG = "WebRtcClient"
-    }
 
     init {
         val options = PeerConnectionFactory.InitializationOptions.builder(context).createInitializationOptions()
@@ -29,43 +23,34 @@ class WebRtcClient(private val context: Context, private val localId: String, pr
     }
 
     private fun createPeerConnection(): PeerConnection? {
-        val iceServers = listOf(
-            PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer()
-        )
+        val iceServers = listOf(PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer())
         val rtcConfig = PeerConnection.RTCConfiguration(iceServers)
         return peerConnectionFactory.createPeerConnection(rtcConfig, object: PeerConnection.Observer {
+            override fun onIceCandidate(candidate: IceCandidate?) {
+                candidate?.let { FirebaseSignaling.sendIceCandidate(localId, remoteId, it.sdp, it.sdpMLineIndex, it.sdpMid) }
+            }
+            override fun onAddStream(stream: MediaStream?) {}
             override fun onSignalingChange(p0: PeerConnection.SignalingState?) {}
             override fun onIceConnectionChange(p0: PeerConnection.IceConnectionState?) {}
             override fun onIceConnectionReceivingChange(p0: Boolean) {}
             override fun onIceGatheringChange(p0: PeerConnection.IceGatheringState?) {}
-            override fun onIceCandidate(p0: IceCandidate?) {
-                p0?.let {
-                    // send to remote via Firebase
-                    FirebaseSignaling.sendIceCandidate(localId, remoteId, it.sdp, it.sdpMLineIndex, it.sdpMid)
-                }
-            }
-            override fun onAddStream(p0: MediaStream?) {}
             override fun onRemoveStream(p0: MediaStream?) {}
             override fun onDataChannel(p0: DataChannel?) {}
             override fun onRenegotiationNeeded() {}
             override fun onAddTrack(receiver: RtpReceiver?, streams: Array<out MediaStream>?) {
-                val tracks = receiver?.track()
-                if (tracks is VideoTrack) {
-                    onRemoteStream(tracks)
-                }
+                val t = receiver?.track()
+                if (t is VideoTrack) onRemoteTrack(t)
             }
         })
     }
 
     fun start(localView: SurfaceViewRenderer) {
         localView.init(eglBase.eglBaseContext, null)
-        // create capturer
-        val videoCapturer = createCameraCapturer()
+        val videoCapturer = createCameraCapturer() ?: return
         val videoSource = peerConnectionFactory.createVideoSource(false)
-        videoCapturer?.initialize(SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext), context, videoSource.capturerObserver)
-        videoCapturer?.startCapture(640,480,30)
+        videoCapturer.initialize(SurfaceTextureHelper.create("CaptureThread", eglBase.eglBaseContext), context, videoSource.capturerObserver)
+        videoCapturer.startCapture(640, 480, 30)
         localVideoTrack = peerConnectionFactory.createVideoTrack("v0", videoSource)
-        localVideoTrack?.setEnabled(true)
         localVideoTrack?.addSink(localView)
 
         val audioSource = peerConnectionFactory.createAudioSource(MediaConstraints())
@@ -89,10 +74,7 @@ class WebRtcClient(private val context: Context, private val localId: String, pr
                 if (desc == null) return
                 pc.setLocalDescription(object: SdpObserver {
                     override fun onCreateSuccess(p0: SessionDescription?) {}
-                    override fun onSetSuccess() {
-                        // send offer via Firebase
-                        FirebaseSignaling.sendOffer(localId, remoteId, desc.description)
-                    }
+                    override fun onSetSuccess() { FirebaseSignaling.sendOffer(localId, remoteId, desc.description) }
                     override fun onCreateFailure(p0: String?) {}
                     override fun onSetFailure(p0: String?) {}
                 }, desc)
@@ -108,18 +90,15 @@ class WebRtcClient(private val context: Context, private val localId: String, pr
         val desc = SessionDescription(SessionDescription.Type.OFFER, sdp)
         pc.setRemoteDescription(object: SdpObserver {
             override fun onSetSuccess() {
-                // create answer
                 pc.createAnswer(object: SdpObserver {
-                    override fun onCreateSuccess(answerDesc: SessionDescription?) {
-                        if (answerDesc == null) return
+                    override fun onCreateSuccess(answer: SessionDescription?) {
+                        if (answer == null) return
                         pc.setLocalDescription(object: SdpObserver {
                             override fun onCreateSuccess(p0: SessionDescription?) {}
-                            override fun onSetSuccess() {
-                                FirebaseSignaling.sendAnswer(localId, from, answerDesc.description)
-                            }
+                            override fun onSetSuccess() { FirebaseSignaling.sendAnswer(localId, from, answer.description) }
                             override fun onCreateFailure(p0: String?) {}
                             override fun onSetFailure(p0: String?) {}
-                        }, answerDesc)
+                        }, answer)
                     }
                     override fun onSetSuccess() {}
                     override fun onCreateFailure(p0: String?) {}
@@ -153,7 +132,7 @@ class WebRtcClient(private val context: Context, private val localId: String, pr
         try {
             peerConnection?.close()
             peerConnection?.dispose()
-        } catch (e: Exception) { }
+        } catch (_: Exception) {}
         peerConnection = null
         localVideoTrack = null
     }
@@ -165,12 +144,10 @@ class WebRtcClient(private val context: Context, private val localId: String, pr
                 return enumerator.createCapturer(name, null)
             }
         }
-        // fallback to first available
-        val enumeratorLegacy = Camera1Enumerator(false)
-        val deviceNames = enumeratorLegacy.deviceNames
-        if (deviceNames.isNotEmpty()) {
-            return enumeratorLegacy.createCapturer(deviceNames[0], null)
-        }
+        // fallback: first available camera
+        val legacy = Camera1Enumerator(false)
+        val names = legacy.deviceNames
+        if (names.isNotEmpty()) return legacy.createCapturer(names[0], null)
         return null
     }
 }
